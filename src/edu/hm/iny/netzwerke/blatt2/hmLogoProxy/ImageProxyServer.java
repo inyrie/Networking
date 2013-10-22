@@ -105,8 +105,7 @@ public class ImageProxyServer {
 							writer.flush();
 						}
 
-						writer.println("");
-
+						writer.println(System.lineSeparator());
 						// Sicher ist sicher!
 						writer.flush();
 
