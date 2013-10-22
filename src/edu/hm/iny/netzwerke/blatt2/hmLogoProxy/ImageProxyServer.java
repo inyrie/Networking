@@ -52,7 +52,7 @@ public class ImageProxyServer {
 
 					final List<String> request = new ArrayList<String>();
 
-					// System.err.println("*** Reading HTTP Request... ");
+					System.err.println("*** Reading HTTP Request... ");
 
 					// Abfangen und Speichern des urspruenglichen HTTP-Requests.
 					for (String line = buffReader.readLine(); line != null && line.length() > 0; line = buffReader
@@ -76,9 +76,9 @@ public class ImageProxyServer {
 					final int targetPort = TARGET_PORT;
 
 					// Kontrollausgabe.
-					// System.err.printf(
-					// System.lineSeparator() + "*** Sending request to %s on Port %d:" + System.lineSeparator(),
-					// targetHost, targetPort);
+					System.err.printf(
+							System.lineSeparator() + "*** Sending request to %s on Port %d:" + System.lineSeparator(),
+							targetHost, targetPort);
 
 					final InetAddress inetAddress = InetAddress.getByName(targetHost);
 					// System.err.println("InetAddress is " + inetAddress.toString());
@@ -101,7 +101,7 @@ public class ImageProxyServer {
 							final String line = requestCursor.next();
 
 							writer.println(line);
-							// System.err.println(line);
+							System.err.println(line);
 							writer.flush();
 						}
 
@@ -130,18 +130,20 @@ public class ImageProxyServer {
 						// urspruenglichen Client.
 						final Iterator<String> manResponseCursor = manipulatedResponse.iterator();
 
-						// System.err.println("*** Sending Response to Client... ");
+						System.err.println("*** Sending Response to Client... ");
 
 						while (manResponseCursor.hasNext()) {
 
 							final String line = manResponseCursor.next();
 
-							printWriter.write(line);
-							// System.err.println(line);
+							printWriter.println(line);
+							System.err.println(line);
 							printWriter.flush();
 						}
 
+						printWriter.println(System.lineSeparator());
 						printWriter.flush();
+
 					}
 				}
 			}

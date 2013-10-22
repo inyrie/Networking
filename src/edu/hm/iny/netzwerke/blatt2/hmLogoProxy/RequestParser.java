@@ -13,6 +13,7 @@ class RequestParser {
 
 	private final List<String> httpRequest;
 	private String targetHost;
+	private int targetPort;
 
 	/**
 	 * @param request
@@ -21,6 +22,7 @@ class RequestParser {
 
 		httpRequest = request;
 		parseHost();
+		parsePort();
 	}
 
 	/**
@@ -30,11 +32,22 @@ class RequestParser {
 		return targetHost;
 	}
 
+	int getTargetPort() {
+		return targetPort;
+	}
+
 	/**
 	 * @param host
 	 */
 	private void setTargetHost(final String host) {
 		targetHost = host;
+	}
+
+	/**
+	 * @param port
+	 */
+	private void setTargetPort(final int port) {
+		targetPort = port;
 	}
 
 	/**
@@ -57,5 +70,25 @@ class RequestParser {
 		}
 
 		setTargetHost(host);
+	}
+
+	final private void parsePort() {
+
+		int targetPort = 80;
+		final String hostURL = httpRequest.get(1).split(" ")[1];
+
+		try {
+			targetPort = Integer.parseInt(hostURL.split(":")[1]);
+		}
+
+		catch (final ArrayIndexOutOfBoundsException iobEx) {
+			// targetPort wird nicht neu belegt, sondern bleibt bei Standardport 80.
+		}
+
+		setTargetPort(targetPort);
+
+		// Ausgabe des gesetzten Ports zur Kontrolle
+		System.err.printf("Target Port is seet to %d", targetPort);
+
 	}
 }

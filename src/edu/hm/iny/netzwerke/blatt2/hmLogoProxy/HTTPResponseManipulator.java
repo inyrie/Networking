@@ -107,7 +107,7 @@ class HTTPResponseManipulator {
 
 		if (readLine.startsWith("GET")) {
 
-			manipulatedResponse.add("GET " + IMAGE_RESSOURCE + "HTTP/1.1/r/n");
+			manipulatedResponse.add("GET " + IMAGE_RESSOURCE + " HTTP/1.1/r/n");
 			manipulatedResponse.add(IMAGE_HOST);
 		}
 
