@@ -3,7 +3,6 @@
  */
 package edu.hm.iny.netzwerke.blatt2.hmLogoProxy;
 
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -11,8 +10,10 @@ import java.util.List;
  */
 class RequestParser {
 
+	static final String STD_RELATIVE_ADDRESS = "/";
+
 	private final List<String> httpRequest;
-	private String targetHost;
+	private String relativeAddress;
 	private int targetPort;
 
 	/**
@@ -21,26 +22,22 @@ class RequestParser {
 	RequestParser(final List<String> request) {
 
 		httpRequest = request;
-		parseHost();
 		parsePort();
+		parseRelativeAddress();
 	}
 
 	/**
-	 * 
+	 * @return
 	 */
-	String getTargetHost() {
-		return targetHost;
+	String getRelativeAddress() {
+		return relativeAddress;
 	}
 
+	/**
+	 * @return
+	 */
 	int getTargetPort() {
 		return targetPort;
-	}
-
-	/**
-	 * @param host
-	 */
-	private void setTargetHost(final String host) {
-		targetHost = host;
 	}
 
 	/**
@@ -51,27 +48,22 @@ class RequestParser {
 	}
 
 	/**
-	 * 
+	 * @param relAdd
 	 */
-	final private void parseHost() {
+	void setRelativeAddress(final String relAdd) {
 
-		final Iterator<String> cursor = httpRequest.iterator();
-		String host = "";
-
-		for (String line = cursor.next(); cursor.hasNext(); line = cursor.next()) {
-
-			if (line.startsWith("Host: ")) {
-
-				final String[] substrings = line.split(" ");
-				host = substrings[1];
-
-				// System.err.println("*** Host set to " + host);
-			}
+		if (relAdd.length() == 0) {
+			relativeAddress = STD_RELATIVE_ADDRESS;
 		}
 
-		setTargetHost(host);
+		else {
+			relativeAddress = relAdd;
+		}
 	}
 
+	/**
+	 * 
+	 */
 	final private void parsePort() {
 
 		int targetPort = 80;
@@ -88,7 +80,15 @@ class RequestParser {
 		setTargetPort(targetPort);
 
 		// Ausgabe des gesetzten Ports zur Kontrolle
-		System.err.printf("Target Port is seet to %d", targetPort);
+		System.err.printf("*** Target Port is set to %d" + System.lineSeparator(), targetPort);
+	}
 
+	/**
+	 * 
+	 */
+	final private void parseRelativeAddress() {
+
+		setRelativeAddress(httpRequest.get(0).split(" ")[1]);
+		System.err.printf("*** Request for Ressource %s sent to Host...", relativeAddress);
 	}
 }

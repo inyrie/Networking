@@ -32,7 +32,7 @@ class HTTPResponseManipulator {
 	/**
 	 * @return
 	 */
-	List<String> getManipulatedResponse() {
+	List<String> getTamperedResponse() {
 		return manipulatedResponse;
 	}
 
@@ -49,11 +49,7 @@ class HTTPResponseManipulator {
 
 			for (String line = responseIterator.next(); responseIterator.hasNext(); line = responseIterator.next()) {
 
-				if (line.contains("Accept: image/")) {
-					manipulateResponse();
-				}
-
-				else if (line.contains("<img src=")) {
+				if (line.contains("<img src=")) {
 					manipulateImageURL(line);
 				}
 
@@ -85,32 +81,5 @@ class HTTPResponseManipulator {
 		}
 
 		manipulatedResponse.add(newLine);
-	}
-
-	/**
-	 * 
-	 */
-	private void manipulateResponse() {
-
-		final Iterator<String> responseIterator = httpResponse.iterator();
-
-		for (String line = responseIterator.next(); responseIterator.hasNext(); line = responseIterator.next()) {
-			manipulateImage(line);
-		}
-
-	}
-
-	/**
-	 * @param readLine
-	 */
-	private void manipulateImage(final String readLine) {
-
-		if (readLine.startsWith("GET")) {
-
-			manipulatedResponse.add("GET " + IMAGE_RESSOURCE + " HTTP/1.1/r/n");
-			manipulatedResponse.add(IMAGE_HOST);
-		}
-
-		manipulatedResponse.add(readLine);
 	}
 }

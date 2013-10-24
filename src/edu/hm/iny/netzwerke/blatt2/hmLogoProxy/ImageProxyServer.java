@@ -5,9 +5,7 @@ package edu.hm.iny.netzwerke.blatt2.hmLogoProxy;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
@@ -22,130 +20,168 @@ import java.util.List;
  */
 public class ImageProxyServer {
 
-	/** Konstante fuer den gewuenschten Port beim TargetHost. */
-	private static final int TARGET_PORT = 80;
+	/** Konstante fuer den Standard-Port beim TargetHost. */
+	private static final int STD_TARGET_PORT = 80;
 
 	/** Konstante fuer den Port des Proxys. */
-	private static final int PORT = 8082;
+	private static final int PROXY_PORT = 8082;
+
+	private final String targetHost;
+
+	private final int targetPort;
+
+	// ///////////////////////////////// C T O R //////////////////////////////////////////
+
+	/**
+	 * @param targetHost
+	 * @param targetPort
+	 */
+	ImageProxyServer(final String targetHost, final int targetPort) {
+
+		this.targetHost = targetHost;
+		this.targetPort = targetPort;
+	}
+
+	/**
+	 * @param targetHost
+	 */
+	ImageProxyServer(final String targetHost) {
+		this(targetHost, STD_TARGET_PORT);
+	}
 
 	/**
 	 * @param ignored
 	 * @throws IOException
 	 */
-	public static void main(final String... ignored) throws IOException {
+	void handleConnections() throws IOException {
 
-		final int port = PORT;
-
-		try (final ServerSocket serverSocket = new ServerSocket(port)) {
+		try (final ServerSocket serverSocket = new ServerSocket(PROXY_PORT)) {
 
 			while (true) {
 
+				System.err.println("*** HM Logo Advertising-Server now running on port " + PROXY_PORT);
+
 				// Standard-IO/Socket-Voodoo fuer Rolle als Server.
 				try (final Socket socket = serverSocket.accept();
-						final InputStream input = socket.getInputStream();
-						final InputStreamReader inputReader = new InputStreamReader(input);
-						final BufferedReader buffReader = new BufferedReader(inputReader);
+						final BufferedReader fromClient = new BufferedReader(new InputStreamReader(
+								socket.getInputStream()));
+						final PrintWriter toClient = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()))) {
 
-						final OutputStream output = socket.getOutputStream();
-						final OutputStreamWriter outputWriter = new OutputStreamWriter(output);
-						final PrintWriter printWriter = new PrintWriter(outputWriter)) {
-
-					final List<String> request = new ArrayList<String>();
-
-					System.err.println("*** Reading HTTP Request... ");
-
-					// Abfangen und Speichern des urspruenglichen HTTP-Requests.
-					for (String line = buffReader.readLine(); line != null && line.length() > 0; line = buffReader
-							.readLine()) {
-
-						request.add(line);
-
-					}
-
-					request.add("");
-
-					// for (final String line : request) {
-					// // Ausgabe des komplett eingelesenen Requests auf der Konsole zur Kontrolle.
-					// System.err.println(line);
-					// }
-
-					// Parsen des TargetHosts aus dem abgefangenen HTTP Request, um Request weiterleiten zu koennen.
-					final RequestParser requestParser = new RequestParser(request);
-
-					final String targetHost = requestParser.getTargetHost();
-					final int targetPort = TARGET_PORT;
-
-					// Kontrollausgabe.
-					System.err.printf(
-							System.lineSeparator() + "*** Sending request to %s on Port %d:" + System.lineSeparator(),
-							targetHost, targetPort);
-
-					final InetAddress inetAddress = InetAddress.getByName(targetHost);
-					// System.err.println("InetAddress is " + inetAddress.toString());
+					System.err.println("*** Oh! It seems we have a visitor... ");
 
 					// Standard-IO/Socket-Voodoo fuer Rolle als Client.
-					try (final Socket targetSocket = new Socket(inetAddress, targetPort);
-							final InputStream clientInput = targetSocket.getInputStream();
-							final InputStreamReader clientInputReader = new InputStreamReader(clientInput);
-							final BufferedReader clientBuffReader = new BufferedReader(clientInputReader);
+					try (final Socket targetSocket = new Socket(InetAddress.getByName(targetHost), targetPort);
+							final BufferedReader fromServer = new BufferedReader(new InputStreamReader(
+									targetSocket.getInputStream()));
+							final PrintWriter toServer = new PrintWriter(new OutputStreamWriter(
+									targetSocket.getOutputStream()))) {
 
-							final OutputStream clientOutput = targetSocket.getOutputStream();
-							final OutputStreamWriter steamWriter = new OutputStreamWriter(clientOutput);
-							final PrintWriter writer = new PrintWriter(steamWriter)) {
+						System.err.printf("*** Connection to %s on port %d established" + System.lineSeparator(),
+								targetHost, targetPort);
 
-						final Iterator<String> requestCursor = request.iterator();
+						sendHTTPRequest(fromClient, toServer);
+						receiveResponseHeader(fromServer);
 
-						// Senden des Requests an TargetHost.
-						while (requestCursor.hasNext()) {
+						// Einlesen und Manipulation des response bodies.
+						final HTTPResponseManipulator responseManipulator = new HTTPResponseManipulator(
+								receiveResponseBody(fromServer));
 
-							final String line = requestCursor.next();
-
-							writer.println(line);
-							System.err.println(line);
-							writer.flush();
-						}
-
-						writer.println(System.lineSeparator());
-						// Sicher ist sicher!
-						writer.flush();
-
-						// //////////////////////////////////////////////////////
-
-						final List<String> responseHeader = new ArrayList<String>();
-
-						// Abfangen des Response-Headers vom Server.
-						System.err.println("*** Receiving response from Host... ");
-						for (String line = clientBuffReader.readLine(); line != null; line = clientBuffReader
-								.readLine()) {
-							responseHeader.add(line);
-							System.err.println(line);
-						}
-
-						// Weiterreichen des Headers zur Anpassung an den Manipulator
-						final HTTPResponseManipulator responseManipulator = new HTTPResponseManipulator(responseHeader);
-						final List<String> manipulatedResponse = responseManipulator.getManipulatedResponse();
-
-						// Rausschicken des manipulierten Response Headers in der Rolle des Servers an den
-						// urspruenglichen Client.
-						final Iterator<String> manResponseCursor = manipulatedResponse.iterator();
-
-						System.err.println("*** Sending Response to Client... ");
-
-						while (manResponseCursor.hasNext()) {
-
-							final String line = manResponseCursor.next();
-
-							printWriter.println(line);
-							System.err.println(line);
-							printWriter.flush();
-						}
-
-						printWriter.println(System.lineSeparator());
-						printWriter.flush();
-
+						sendTamperedResponse(responseManipulator.getTamperedResponse(), toClient);
 					}
 				}
 			}
 		}
+	}
+
+	/**
+	 * @param fromClient
+	 * @throws IOException
+	 */
+	private List<String> readRequestHeader(final BufferedReader fromClient) throws IOException {
+
+		final List<String> requestFromClient = new ArrayList<String>();
+
+		System.err.printf(System.lineSeparator() + "*** Sending request to %s on Port %d:" + System.lineSeparator(),
+				targetHost, targetPort);
+
+		for (String line = fromClient.readLine(); line.length() > 0; line = fromClient.readLine()) {
+			requestFromClient.add(line);
+			System.err.println(line);
+		}
+
+		return requestFromClient;
+	}
+
+	/**
+	 * Methode zum Abfangen und Ausgeben des Response-Headers vom Server. Der Header wird nicht weiter beachtet.
+	 * @param fromServer
+	 * @throws IOException
+	 */
+	private void receiveResponseHeader(final BufferedReader fromServer) throws IOException {
+
+		System.err.println("*** Receiving response from Host... ");
+
+		for (String line = fromServer.readLine(); line.length() > 0; line = fromServer.readLine()) {
+			System.err.println(line);
+		}
+	}
+
+	/**
+	 * @param fromServer
+	 * @return
+	 * @throws IOException
+	 */
+	private List<String> receiveResponseBody(final BufferedReader fromServer) throws IOException {
+
+		final List<String> responseBody = new ArrayList<String>();
+
+		for (String line = fromServer.readLine(); line != null; line = fromServer.readLine()) {
+
+			responseBody.add(line);
+			// System.err.println(line);
+		}
+
+		return responseBody;
+	}
+
+	/**
+	 * Sends an HTTP Request to a globally defined server.
+	 * @param toServer A PrintWriter object for output to server.
+	 * @throws IOException
+	 */
+	private void sendHTTPRequest(final BufferedReader fromClient, final PrintWriter toServer) throws IOException {
+
+		final RequestParser requestParser = new RequestParser(readRequestHeader(fromClient));
+		final String request = "GET " + requestParser.getRelativeAddress() + " HTTP/1.1" + System.lineSeparator()
+				+ "Host: " + targetHost + System.lineSeparator() + System.lineSeparator();
+
+		toServer.println(request);
+		toServer.flush();
+	}
+
+	/**
+	 * Methode zum Rausschicken des manipulierten Response an den Client.
+	 * @param manipulatedResponse
+	 * @param toClient
+	 */
+	private void sendTamperedResponse(final List<String> manipulatedResponse, final PrintWriter toClient) {
+
+		// Rausschicken des manipulierten Response Headers in der Rolle des Servers an den
+		// urspruenglichen Client.
+		final Iterator<String> manResponseCursor = manipulatedResponse.iterator();
+
+		System.err.println("*** Sending tampered HTTP response to Client... ");
+
+		while (manResponseCursor.hasNext()) {
+
+			final String line = manResponseCursor.next();
+
+			toClient.println(line);
+			System.err.println(line);
+			toClient.flush();
+		}
+
+		toClient.println(System.lineSeparator());
+		toClient.flush();
 	}
 }
