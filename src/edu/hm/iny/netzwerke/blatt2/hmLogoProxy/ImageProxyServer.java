@@ -104,7 +104,7 @@ public class ImageProxyServer {
 		System.err.printf(System.lineSeparator() + "*** Sending request to %s on Port %d:" + System.lineSeparator(),
 				targetHost, targetPort);
 
-		for (String line = fromClient.readLine(); line.length() > 0; line = fromClient.readLine()) {
+		for (String line = fromClient.readLine(); line != null && line.length() > 0; line = fromClient.readLine()) {
 			requestFromClient.add(line);
 			System.err.println(line);
 		}
