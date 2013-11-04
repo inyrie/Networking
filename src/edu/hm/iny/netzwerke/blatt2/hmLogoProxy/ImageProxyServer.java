@@ -1,5 +1,8 @@
 /**
- *
+ * Munich University for Applied Science,
+ * Faculty 07 for Mathematics and Computer Science
+ * Netzwerke I, WS2013/14, Praktikumsgruppe IF2B[2]
+ * Windows 7 Professional SP1; Java-Version: 1.7.0_21
  */
 package edu.hm.iny.netzwerke.blatt2.hmLogoProxy;
 
@@ -16,7 +19,11 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * @author Stäff
+ * Klasse fuer einen Proxyserver auf einem gewuenschten Port (Default ist Port 8020), der die Bilder auf einer
+ * aufgerufenen Website durch HM-Logo-Bilder austauscht.
+ * @author Stephanie Ehrenberg
+ * @author Diana Irmscher
+ * @version 2013-11-04
  */
 public class ImageProxyServer {
 
@@ -33,6 +40,7 @@ public class ImageProxyServer {
 	// ///////////////////////////////// C T O R //////////////////////////////////////////
 
 	/**
+	 * Ctor, wenn anderer Port gewuenscht wird als der Standardport.
 	 * @param targetHost
 	 * @param targetPort
 	 */
@@ -43,6 +51,7 @@ public class ImageProxyServer {
 	}
 
 	/**
+	 * Ctor fuer Proxyserver auf Defaultport 8020.
 	 * @param targetHost
 	 */
 	ImageProxyServer(final String targetHost) {
@@ -50,7 +59,7 @@ public class ImageProxyServer {
 	}
 
 	/**
-	 * @param ignored
+	 * Baut die einzelnen Verbindungen zum Client bzw. zum Targethost auf.
 	 * @throws IOException
 	 */
 	void handleConnections() throws IOException {
@@ -86,6 +95,7 @@ public class ImageProxyServer {
 						final HTTPResponseManipulator responseManipulator = new HTTPResponseManipulator(
 								receiveResponseBody(fromServer));
 
+						// Auslieferung der manipulierten Seite an den Client.
 						sendTamperedResponse(responseManipulator.getTamperedResponse(), toClient);
 					}
 				}
@@ -94,8 +104,10 @@ public class ImageProxyServer {
 	}
 
 	/**
-	 * @param fromClient
+	 * Methode zum Einlesen des Request Headers, damit Request an target host weitergeschickt werden kann.
+	 * @param fromClient BuffReader-Objekt, das Datenquelle Client repraesentiert.
 	 * @throws IOException
+	 * @return Den urspruenglichen HTTP Request Header vom Client.
 	 */
 	private List<String> readRequestHeader(final BufferedReader fromClient) throws IOException {
 
@@ -114,7 +126,7 @@ public class ImageProxyServer {
 
 	/**
 	 * Methode zum Abfangen und Ausgeben des Response-Headers vom Server. Der Header wird nicht weiter beachtet.
-	 * @param fromServer
+	 * @param fromServer Ein BuffReader-Objekt , das den Server als Datenquelle repraesentiert.
 	 * @throws IOException
 	 */
 	private void receiveResponseHeader(final BufferedReader fromServer) throws IOException {
@@ -127,8 +139,9 @@ public class ImageProxyServer {
 	}
 
 	/**
-	 * @param fromServer
-	 * @return
+	 * Methode zum Empfangen/Einlesen des HTTP Response bodies.
+	 * @param fromServer Ein BuffReader-Objekt , das den Server als Datenquelle repraesentiert.
+	 * @return Den Body (also die HTML-Seite) der HTTP Response.
 	 * @throws IOException
 	 */
 	private List<String> receiveResponseBody(final BufferedReader fromServer) throws IOException {
@@ -145,8 +158,8 @@ public class ImageProxyServer {
 	}
 
 	/**
-	 * Sends an HTTP Request to a globally defined server.
-	 * @param toServer A PrintWriter object for output to server.
+	 * Sendet einen HTTP Request an einen global definierten Server.
+	 * @param toServer Ein PrintWriter Ojekt fuer den Output zum Server.
 	 * @throws IOException
 	 */
 	private void sendHTTPRequest(final BufferedReader fromClient, final PrintWriter toServer) throws IOException {
@@ -161,8 +174,8 @@ public class ImageProxyServer {
 
 	/**
 	 * Methode zum Rausschicken des manipulierten Response an den Client.
-	 * @param manipulatedResponse
-	 * @param toClient
+	 * @param manipulatedResponse Die manipulierte HTTP Response mit ausgetauschten URL fuer die Bilder.
+	 * @param toClient Ein PrintWriter Objekt fuer den Output zum Client.
 	 */
 	private void sendTamperedResponse(final List<String> manipulatedResponse, final PrintWriter toClient) {
 
