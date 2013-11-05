@@ -16,7 +16,7 @@ import java.util.List;
  */
 class RequestParser {
 
-	// Konstante fuer den Default fuer die relative Adresse.
+	// Konstante fuer den Default fuer die relative Adresse. Greift dann auf die index-Seite zu.
 	static final String STD_RELATIVE_ADDRESS = "/";
 
 	private final List<String> httpRequest;
