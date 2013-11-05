@@ -89,11 +89,10 @@ public class ImageProxyServer {
 								targetHost, targetPort);
 
 						sendHTTPRequest(fromClient, toServer);
-						receiveResponseHeader(fromServer);
 
 						// Einlesen und Manipulation des response bodies.
 						final HTTPResponseManipulator responseManipulator = new HTTPResponseManipulator(
-								receiveResponseBody(fromServer));
+								receiveResponseHeader(fromServer), receiveResponseBody(fromServer));
 
 						// Auslieferung der manipulierten Seite an den Client.
 						sendTamperedResponse(responseManipulator.getTamperedResponse(), toClient);
@@ -125,17 +124,24 @@ public class ImageProxyServer {
 	}
 
 	/**
-	 * Methode zum Abfangen und Ausgeben des Response-Headers vom Server. Der Header wird nicht weiter beachtet.
+	 * Methode zum Abfangen des Response-Headers vom Server. Der Header muss dem manipulierten HTTP Response Body bei
+	 * der Ausgabe an den Client vorangestellt werden.
 	 * @param fromServer Ein BuffReader-Objekt , das den Server als Datenquelle repraesentiert.
+	 * @return Den HTTP Response Header.
 	 * @throws IOException
 	 */
-	private void receiveResponseHeader(final BufferedReader fromServer) throws IOException {
+	private List<String> receiveResponseHeader(final BufferedReader fromServer) throws IOException {
 
 		System.err.println("*** Receiving response from Host... ");
 
+		final List<String> httpResponseHeader = new ArrayList<String>();
+
 		for (String line = fromServer.readLine(); line.length() > 0; line = fromServer.readLine()) {
+			httpResponseHeader.add(line);
 			System.err.println(line);
 		}
+
+		return httpResponseHeader;
 	}
 
 	/**
@@ -180,6 +186,9 @@ public class ImageProxyServer {
 	private void sendTamperedResponse(final List<String> manipulatedResponse, final PrintWriter toClient) {
 
 		// Rausschicken des manipulierten Response Headers in der Rolle des Servers an den
+		// urspruenglichen Client.
+
+		// Rausschicken des manipulierten Response Bodies in der Rolle des Servers an den
 		// urspruenglichen Client.
 		final Iterator<String> manResponseCursor = manipulatedResponse.iterator();
 

@@ -24,16 +24,19 @@ class HTTPResponseManipulator {
 	private final String IMAGE_RESSOURCE = "/fi/hm-logo.png";
 	private final String IMAGE_PATH = IMAGE_HOST + IMAGE_RESSOURCE;
 
-	private final List<String> httpResponse;
+	private final List<String> httpResponseBody;
 	private final List<String> manipulatedResponse = new ArrayList<String>();
 
 	/**
 	 * Ctor.
-	 * @param response HTTP Response von einem Target Host gesendet. Soll abgeaendert werden.
+	 * @param responseBody HTTP Response von einem Target Host gesendet. Soll abgeaendert werden.
 	 */
-	HTTPResponseManipulator(final List<String> response) {
+	HTTPResponseManipulator(final List<String> responseHeader, final List<String> responseBody) {
 
-		httpResponse = response;
+		httpResponseBody = responseBody;
+		// Einfuegen des vom Server geschickten HTTP Headers.
+		insertOriginalHeader(responseHeader);
+		// Analysieren und ggf. Manipulieren des vom Server geschickten HTTP Bodies.
 		analyzeResponse();
 	}
 
@@ -46,13 +49,29 @@ class HTTPResponseManipulator {
 	}
 
 	/**
+	 * Methode zum Einfuegen des urspruenglichen HTTP Response Headers in die manipulierte HTTP Response, damit diese
+	 * komplett an den Client ausgeliefert werden kann.
+	 * @param responseHeader Der vom Server gesendete Header der HTTP Response.
+	 */
+	final private void insertOriginalHeader(final List<String> responseHeader) {
+
+		final Iterator<String> headerCursor = responseHeader.iterator();
+
+		for (String line = headerCursor.next(); headerCursor.hasNext(); line = headerCursor.next()) {
+			manipulatedResponse.add(line);
+		}
+
+		manipulatedResponse.add(System.lineSeparator());
+	}
+
+	/**
 	 * Methode, die die HTTP Response nach Image-Tags durchsucht und dann die Manipulation der Bilder anstoesst.
 	 */
 	final private void analyzeResponse() {
 
-		final Iterator<String> responseIterator = httpResponse.iterator();
+		final Iterator<String> responseIterator = httpResponseBody.iterator();
 
-		if (httpResponse.size() > 0) {
+		if (httpResponseBody.size() > 0) {
 
 			for (String line = responseIterator.next(); responseIterator.hasNext(); line = responseIterator.next()) {
 
