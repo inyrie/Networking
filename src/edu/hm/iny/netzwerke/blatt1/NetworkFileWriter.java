@@ -1,41 +1,53 @@
 /**
- *
+ * Munich University for Applied Science,
+ * Faculty 07 for Mathematics and Computer Science
+ * Netzwerke I, WS2013/14, Praktikumsgruppe IF2B[2]
+ * Windows 7 Professional SP1; Java-Version: 1.7.0_21
  */
+
 package edu.hm.iny.netzwerke.blatt1;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
 
 /**
- * @author Stäff
- * @version 2013-10-15
+ * Programm zum Einlesen von STDIN und Ausgabe des Inputs über STDOUT.
+ * @author Stephanie Ehrenberg
+ * @author Diana Irmscher
+ * @version 2013-11-05
  */
 public class NetworkFileWriter {
 
 	public static void main(final String... args) throws IOException {
 
-		final String filename = "outputFile.txt";
-		final String byeMsg = "kthxbye";
-		final String startMsg = "Hi there!";
+		// Konstante fuer den Pfad unter Linux (!!!), unter dem die Datei fuer den Output angelegt wird.
+		final String FILE_PATH = "/home/network/Dokumente/aufgabe1.txt";
 
-		try (final InputStream input = System.in; final PrintStream output = System.out/**
-		 * ; FileWriter writer = new
-		 * FileWriter(filename, true)
-		 */
-		) {
+		final File file = new File(FILE_PATH);
 
-			output.println(startMsg);
+		if (!file.exists()) {
 
-			int code = input.read();
+			try {
+				file.createNewFile();
+			}
 
-			while (code >= 0) {
+			catch (final IOException ioEx) {
+				ioEx.printStackTrace();
+			}
+		}
+
+		// ARM - Definition der Streamressourcen.
+		try (final FileOutputStream output = new FileOutputStream(file); final InputStream input = System.in;) {
+
+			for (int code = input.read(); code >= 0; code = input.read()) {
+
 				output.write(code);
-				code = input.read();
 				output.flush();
 			}
 
-			System.out.println(byeMsg);
+			// Sicher ist sicher!
 			output.flush();
 		}
 	}

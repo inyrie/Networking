@@ -79,11 +79,16 @@ class RequestParser {
 	final private void parsePort() {
 
 		int targetPort = 80;
-		final String hostURL = httpRequest.get(1).split(" ")[1];
-		final String hostPort = hostURL.split(":")[1];
+		try {
+			final String hostURL = httpRequest.get(1).split(" ")[1];
+			final String hostPort = hostURL.split(":")[1];
 
-		if (!hostPort.isEmpty()) {
-			targetPort = Integer.parseInt(hostPort);
+			if (!hostPort.isEmpty()) {
+				targetPort = Integer.parseInt(hostPort);
+			}
+		} catch (final Exception ex) {
+			// falls irgendwas schief laeuft beim parsen des Ports -> nichts machen,
+			// es wird dann der Standardport 80 verwendet.
 		}
 
 		setTargetPort(targetPort);
@@ -97,7 +102,13 @@ class RequestParser {
 	 */
 	final private void parseRelativeAddress() {
 
-		setRelativeAddress(httpRequest.get(0).split(" ")[1]);
+		try {
+			relativeAddress = httpRequest.get(0).split(" ")[1];
+		} catch (final Exception ex) {
+			// falls beim Parsen etwas schief geht, liefere die Indexseite aus!
+			relativeAddress = STD_RELATIVE_ADDRESS;
+		}
+
 		System.err.printf("*** Request for Ressource %s sent to Host...", relativeAddress);
 	}
 }
