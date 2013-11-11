@@ -1,0 +1,43 @@
+/*
+    Document   : style
+    Created on : 10.09.2012, 17:47:19
+    Author     : sehrenberg
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+body {
+    background-color: #006699;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    color: #ACE;
+    padding-top: 10px;
+}
+
+p {
+    background-color: #069;
+    padding: 10px;
+    width: 300px;
+    /*-moz-border-radius: 10px;*/
+    border-radius: 10px;
+}
+
+/* p.past_entries {
+    background-color: #059;
+    padding: 10px;
+    width: 300px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+}
+*/
+
+
+p.header {
+    background-color: #069;
+    padding: 10px;
+    width: 300px;
+    /*-moz-border-radius: 10px;*/
+    border-radius: 10px;
+    text-decoration: underline;
+    font-weight: bold;
+}
